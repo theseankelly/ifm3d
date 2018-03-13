@@ -112,3 +112,12 @@ target_link_libraries(ex-exposure_times
                       ${PCL_IO_LIBRARIES}
                       ${OpenCV_LIBRARIES}
                       )
+
+add_executable(ex-leak-check ex-leak-check.cpp)
+target_link_libraries(ex-leak-check
+                      ifm3d_image_shared
+                      ifm3d_framegrabber_shared
+                      ifm3d_camera_shared
+                      ${PCL_IO_LIBRARIES}
+                      ${OpenCV_LIBRARIES}
+                      )
