@@ -80,12 +80,6 @@ PYBIND11_MODULE(ifm3dpy, m)
 {
   m.doc() = "Bindings for the ifm3d Camera Library";
 
-  // Image containers
-  declare_image_class<std::uint8_t>(m, "uint8");
-  declare_image_class<std::uint16_t>(m, "uint16");
-  declare_image_class<std::int16_t>(m, "int16");
-  declare_cloud_class<std::int16_t>(m, "int16");
-
   py::class_<ifm3d::OpenCVBuffer, ifm3d::OpenCVBuffer::Ptr>(
     m,
     "ByteBuffer"
@@ -210,27 +204,103 @@ PYBIND11_MODULE(ifm3dpy, m)
         frame data are accessed.
       )")
     .def(
-      "xyz",
+      "distance_image",
       [](ifm3d::OpenCVBuffer::Ptr buff)
       {
-        auto mat =
-          static_cast<cv::Mat_<cv::Vec<std::int16_t,3>>>(buff->XYZImage());
+        return ifm3d::image_to_array<std::uint8_t>(buff->DistanceImage());
+      },
+      R"(
+        Retrieves the radial distance image
 
-        // This returns a numpy.ndarray directly, but currently copies memory.
-        // Need to figure out how to not copy memory. Alternates exist by
-        // returning an object that exposes the buffer protocol, but that's
-        // a bit clunky and should not be necessary.
-        return py::array(
-          py::buffer_info(
-            mat.ptr(0),
-            sizeof(std::int16_t),
-            py::format_descriptor<std::int16_t>::format(),
-            mat.channels(),
-            { mat.rows, mat.cols, mat.channels() },
-            { sizeof(std::int16_t) * mat.channels() * mat.cols,
-              sizeof(std::int16_t) * mat.channels(),
-              sizeof(std::int16_t)}));
-      });
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "unit_vectors",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::cloud_to_array<std::uint8_t>(buff->UnitVectors());
+      },
+      R"(
+        Retrieves the unit vector image
+
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "gray_image",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::image_to_array<std::uint8_t>(buff->GrayImage());
+      },
+      R"(
+        Retrieves the gray image
+
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "amplitude_image",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::image_to_array<std::uint16_t>(buff->AmplitudeImage());
+      },
+      R"(
+        Retrieves the amplitude image
+
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "raw_amplitude_image",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::image_to_array<std::uint8_t>(buff->RawAmplitudeImage());
+      },
+      R"(
+        Retrieves the raw amplitude image
+
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "confidence_image",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::image_to_array<std::uint8_t>(buff->ConfidenceImage());
+      },
+      R"(
+        Retrieves the confidence image
+
+        Returns
+        -------
+        numpy.ndarray
+            Image organized on the pixel array [rows, cols]
+      )")
+    .def(
+      "xyz_image",
+      [](ifm3d::OpenCVBuffer::Ptr buff)
+      {
+        return ifm3d::cloud_to_array<std::int16_t>(buff->XYZImage());
+      },
+      R"(
+        Retrieves the xyz image (cartesian point cloud)
+
+        Returns
+        -------
+        numpy.ndarray nxmx3
+            Image organized on the pixel array [rows, cols, chans(x,y,z)]
+      )");
 
   py::class_<ifm3d::FrameGrabberWrapper, ifm3d::FrameGrabberWrapper::Ptr>(
     m,
@@ -285,50 +355,6 @@ PYBIND11_MODULE(ifm3dpy, m)
     .def(
       "wait_for_frame",
       &ifm3d::FrameGrabberWrapper::WaitForFrame,
-    // .def(
-    //   "WaitForFrame",
-    //   [](ifm3d::FrameGrabber::Ptr fg, long timeout_millis,
-    //      bool copy_buff, bool organize)
-    //   {
-    //     std::cout << "Getting frame!" << std::endl;
-    //     auto im = std::make_shared<ifm3d::OpenCVBuffer>();
-    //     if (!fg->WaitForFrame(im.get(), timeout_millis, copy_buff, organize))
-    //       {
-    //         throw std::runtime_error("FrameGrabber timed out waiting for frame");
-    //       }
-    //     else
-    //       {
-    //         std::cout << "Got image!" << std::endl;
-    //         cv::Mat xyz = im->XYZImage();
-    //         std::cout << "XYZImage data address = " << std::hex
-    //                   << xyz.ptr<std::int16_t>(0) << std::endl;
-    //         std::cout << "XYZImage object address = " << std::hex
-    //                   << &xyz << std::endl;
-
-    //         std::cout << "DistanceImage = " << im->DistanceImage().type() << std::endl;
-    //         std::cout << "UnitVectors = " << im->UnitVectors().type() << std::endl;
-    //         std::cout << "GrayImage = " << im->GrayImage().type() << std::endl;
-    //         std::cout << "AmplitudeImage = " << im->AmplitudeImage().type() << std::endl;
-    //         std::cout << "RawAmplitudeImage = " << im->RawAmplitudeImage().type() << std::endl;
-    //         std::cout << "ConfidenceImage = " << im->ConfidenceImage().type() << std::endl;
-    //         std::cout << "XYZImage = " << im->XYZImage().type() << std::endl;
-    //       }
-
-    //     // @TODO - only expose certain values in the dictionary, according to the schemas
-    //     // py::dict img = py::dict();
-    //     // img["distance"] = static_cast<cv::Mat_<std::uint8_t>>(im->DistanceImage());
-    //     // img["amplitude"] = static_cast<cv::Mat_<std::uint16_t>>(im->AmplitudeImage());
-
-    //     py::dict img = py::dict(
-    //       "distance"_a=static_cast<cv::Mat_<std::uint8_t>>(im->DistanceImage()),
-    //       "uv"_a=static_cast<cv::Mat_<std::uint8_t>>(im->UnitVectors()),
-    //       "gray"_a=static_cast<cv::Mat_<std::uint8_t>>(im->GrayImage()),
-    //       "amplitude"_a=static_cast<cv::Mat_<std::uint16_t>>(im->AmplitudeImage()),
-    //       "raw_amplitude"_a=static_cast<cv::Mat_<std::uint8_t>>(im->RawAmplitudeImage()),
-    //       "confidence"_a=static_cast<cv::Mat_<std::uint8_t>>(im->ConfidenceImage()),
-    //       "xyz"_a=static_cast<cv::Mat_<cv::Vec<std::int16_t,3>>>(im->XYZImage()));
-    //     return img;
-    //   },
       R"(
         This function is used to grab and parse out time synchronized image
         data from the camera.
@@ -988,5 +1014,4 @@ PYBIND11_MODULE(ifm3dpy, m)
           as descriptive as possible as to the specific error that has
           occured.
     )");
-
 }
