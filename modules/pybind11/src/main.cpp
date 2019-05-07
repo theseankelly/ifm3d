@@ -8,11 +8,17 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
-/* distributed under the License is distribted on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <cstdint>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/chrono.h>
@@ -28,15 +34,14 @@
 #include "util.hpp"
 
 namespace py = pybind11;
-using namespace py::literals;
-
-
-// @TODO: verify the following functionality
-// - does the fg schema get properly pulled from the environment variable?
-// - expose copy_buff flag on the frame grabber?
 
 namespace ifm3d
 {
+  /**
+   * Wrapper class around FrameGrabber that holds an internal OpenCVBuffer
+   * byte buffer. The buffer is held for the lifecycle of the object and
+   * re-used for each new frame.
+   */
   class FrameGrabberWrapper : public ifm3d::FrameGrabber
   {
   public:
@@ -45,10 +50,7 @@ namespace ifm3d
     FrameGrabberWrapper(ifm3d::Camera::Ptr cam,
                         std::uint16_t mask = ifm3d::DEFAULT_SCHEMA_MASK) :
                          ifm3d::FrameGrabber(cam, mask),
-                         _im(std::make_shared<ifm3d::OpenCVBuffer>())
-    {
-      std::cout << "FrameGrabberWrapper ctor" << std::endl;
-    };
+                         _im(std::make_shared<ifm3d::OpenCVBuffer>()) {};
 
     ifm3d::OpenCVBuffer::Ptr WaitForFrame(long timeout_millis = 0,
                       bool organize = true)
@@ -59,12 +61,6 @@ namespace ifm3d
                               organize))
         {
           throw std::runtime_error("FrameGrabber timed out waiting for frame");
-        }
-      else
-        {
-          cv::Mat xyz = this->_im->XYZImage();
-          std::cout << "XYZImage data address = " << std::hex
-                    << xyz.ptr<std::int16_t>(0) << std::endl;
         }
 
       return this->_im;
@@ -79,6 +75,18 @@ namespace ifm3d
 PYBIND11_MODULE(ifm3dpy, m)
 {
   m.doc() = "Bindings for the ifm3d Camera Library";
+
+  // Constants used to create "pluggable schema masks"
+  m.attr("IMG_RDIS") = ifm3d::IMG_RDIS;
+  m.attr("IMG_AMP") = ifm3d::IMG_AMP;
+  m.attr("IMG_RAMP") = ifm3d::IMG_RAMP;
+  m.attr("IMG_CART") = ifm3d::IMG_CART;
+  m.attr("IMG_UVEC") = ifm3d::IMG_UVEC;
+  m.attr("EXP_TIME") = ifm3d::EXP_TIME;
+  m.attr("IMG_GRAY") = ifm3d::IMG_GRAY;
+  m.attr("ILLU_TEMP")  = ifm3d::ILLU_TEMP;
+  m.attr("INTR_CAL") = ifm3d::INTR_CAL;
+  m.attr("INV_INTR_CAL") = ifm3d::INV_INTR_CAL;
 
   py::class_<ifm3d::OpenCVBuffer, ifm3d::OpenCVBuffer::Ptr>(
     m,
@@ -324,16 +332,6 @@ PYBIND11_MODULE(ifm3dpy, m)
             A bitmask encoding the image acquisition schema to stream in from
             the camera.
         )")
-    .def_readonly_static("IMG_RDIS", &ifm3d::IMG_RDIS)
-    .def_readonly_static("IMG_AMP", &ifm3d::IMG_AMP)
-    .def_readonly_static("IMG_RAMP", &ifm3d::IMG_RAMP)
-    .def_readonly_static("IMG_CART", &ifm3d::IMG_CART)
-    .def_readonly_static("IMG_UVEC", &ifm3d::IMG_UVEC)
-    .def_readonly_static("EXP_TIME", &ifm3d::EXP_TIME)
-    .def_readonly_static("IMG_GRAY", &ifm3d::IMG_GRAY)
-    .def_readonly_static("ILLU_TEMP", &ifm3d::ILLU_TEMP)
-    .def_readonly_static("INTR_CAL", &ifm3d::INTR_CAL)
-    .def_readonly_static("INV_INTR_CAL", &ifm3d::INV_INTR_CAL)
     .def(
       "sw_trigger",
       &ifm3d::FrameGrabber::SWTrigger,
@@ -399,6 +397,34 @@ PYBIND11_MODULE(ifm3dpy, m)
   py::enum_<ifm3d::Camera::boot_mode>(camera, "boot_mode")
     .value("PRODUCTIVE", ifm3d::Camera::boot_mode::PRODUCTIVE)
     .value("RECOVERY", ifm3d::Camera::boot_mode::RECOVERY);
+
+  py::enum_<ifm3d::Camera::operating_mode>(camera, "operating_mode")
+    .value("RUN", ifm3d::Camera::operating_mode::RUN)
+    .value("EDIT", ifm3d::Camera::operating_mode::EDIT);
+
+  py::enum_<ifm3d::Camera::trigger_mode>(camera, "trigger_mode")
+    .value("FREE_RUN", ifm3d::Camera::trigger_mode::FREE_RUN)
+    .value("SW", ifm3d::Camera::trigger_mode::SW);
+
+  py::enum_<ifm3d::Camera::import_flags>(camera, "import_flags")
+    .value("GLOBAL", ifm3d::Camera::import_flags::GLOBAL)
+    .value("NET", ifm3d::Camera::import_flags::NET)
+    .value("APPS", ifm3d::Camera::import_flags::APPS);
+
+  py::enum_<ifm3d::Camera::spatial_filter>(camera, "spatial_filter")
+    .value("OFF", ifm3d::Camera::spatial_filter::OFF)
+    .value("MEDIAN", ifm3d::Camera::spatial_filter::MEDIAN)
+    .value("MEAN", ifm3d::Camera::spatial_filter::MEAN)
+    .value("BILATERAL", ifm3d::Camera::spatial_filter::BILATERAL);
+
+  py::enum_<ifm3d::Camera::temporal_filter>(camera, "temporal_filter")
+    .value("OFF", ifm3d::Camera::temporal_filter::OFF)
+    .value("MEAN", ifm3d::Camera::temporal_filter::MEAN)
+    .value("ADAPTIVE_EXP", ifm3d::Camera::temporal_filter::ADAPTIVE_EXP);
+
+  py::enum_<ifm3d::Camera::mfilt_mask_size>(camera, "mfilt_mask_size")
+    .value("_3x3", ifm3d::Camera::mfilt_mask_size::_3x3)
+    .value("_5x5", ifm3d::Camera::mfilt_mask_size::_5x5);
 
   // Ctor
 
