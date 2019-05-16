@@ -109,6 +109,13 @@ if(BUILD_MODULE_TOOLS)
   add_subdirectory(modules/tools)
 endif()
 if(BUILD_MODULE_PYBIND11)
+  if(NOT BUILD_MODULE_OPENCV)
+    message(
+      FATAL_ERROR
+      "Module PYBIND11 depends on module OPENCV.  \
+      Please enable it with -DBUILD_MODULE_OPENCV=ON")
+  endif()
+  add_definitions(-DBUILD_MODULE_PYBIND11)
   add_subdirectory(modules/pybind11)
 endif()
 
