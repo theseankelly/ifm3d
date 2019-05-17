@@ -76,6 +76,11 @@ PYBIND11_MODULE(ifm3dpy, m)
 {
   m.doc() = "Bindings for the ifm3d Camera Library";
 
+  // Camera defaults
+  m.attr("DEFAULT_IP") = ifm3d::DEFAULT_IP;
+  m.attr("DEFAULT_XMLRPC_PORT") = ifm3d::DEFAULT_XMLRPC_PORT;
+  m.attr("DEFAULT_PASSWORD") = ifm3d::DEFAULT_PASSWORD;
+
   // Constants used to create "pluggable schema masks"
   m.attr("IMG_RDIS") = ifm3d::IMG_RDIS;
   m.attr("IMG_AMP") = ifm3d::IMG_AMP;
