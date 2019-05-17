@@ -1,7 +1,6 @@
 ################################################
-## Target: ifm3dpy.so
+## Setup
 ################################################
-add_library(ifm3dpy MODULE main.cpp)
 
 # Set the module name and installation paths based on target python version
 if(PYTHON_VERSION_MAJOR EQUAL 2)
@@ -15,6 +14,26 @@ else()
     FATAL_ERROR "Unexpected PYTHON_VERSION_MAJOR: ${PYTHON_VERSION_MAJOR}"
     )
 endif()
+
+if(FORCE_OPENCV3)
+  find_package(OpenCV 3 REQUIRED COMPONENTS core)
+elseif(FORCE_OPENCV2)
+  find_package(OpenCV 2.4 REQUIRED COMPONENTS core)
+else()
+  find_package(OpenCV REQUIRED COMPONENTS core)
+endif()
+
+# needs to be done before the target is declared
+link_directories(${OpenCV_LIBRARY_DIRS})
+
+################################################
+## Target: ifm3dpy.so
+## (Note: Name of the target maps directly to
+## the name of the resulting python module, so
+## we break from the naming convention found in
+## other ifm3d components here.
+################################################
+add_library(ifm3dpy MODULE main.cpp)
 
 #------------------
 # Compiler settings
@@ -34,7 +53,6 @@ target_include_directories(ifm3dpy
 target_link_libraries(
   ifm3dpy
   PRIVATE
-    ifm3d_opencv
     ifm3d_framegrabber_shared
     ifm3d_camera_shared
     ${OpenCV_LIBRARIES}
