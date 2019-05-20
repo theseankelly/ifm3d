@@ -43,8 +43,8 @@ def test_applicationlist(cam):
 def test_sessionmanagement(cam):
     sid = cam.request_session()
     assert cam.session_id == sid
-    cam.cancel_session()
-    assert "" == cam.session_id
+    retval = cam.cancel_session()
+    assert retval
 
     # Ensure the session is closed when the object goes out of scope
     cam2 = ifm3dpy.Camera()
@@ -52,7 +52,7 @@ def test_sessionmanagement(cam):
     del cam2
     sid = cam.request_session()
     assert cam.session_id == sid
-    cam.cancel_session()
+    assert cam.cancel_session()
     assert "" == cam.session_id
 
     cam2 = ifm3dpy.Camera()
@@ -62,10 +62,10 @@ def test_sessionmanagement(cam):
     with pytest.raises(RuntimeError):
         cam.request_session()
     ## Let's now use cam to cancel the sid from the other camera
-    cam.cancel_session(sid)
+    assert cam.cancel_session(sid)
     ## Now make a new session and cancel it
     sid = cam.request_session()
-    cam.cancel_session()
+    assert cam.cancel_session()
 
     ## Cam2's dtor will try to close the session as well, which fails with
     ## an error in the log. This error can be ignored.

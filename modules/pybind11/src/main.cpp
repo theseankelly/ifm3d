@@ -520,39 +520,34 @@ PYBIND11_MODULE(ifm3dpy, m)
 
   camera.def(
     "cancel_session",
-    [](ifm3d::Camera::Ptr camera, const std::string& sid)
-    {
-      bool res;
-      if (sid  == "")
-        {
-          res = camera->CancelSession();
-        }
-      else
-        {
-          res = camera->CancelSession(sid);
-        }
-
-      if (!res)
-        {
-          throw std::runtime_error("Failed to cancel session. Check ifm3d "
-                                   "log for details.");
-        }
-    },
-    py::arg("sid") = "",
+    (bool (ifm3d::Camera::*)(void)) &ifm3d::Camera::CancelSession,
     R"(
       Explictly stops the current session with the sensor.
+
+      Returns
+      -------
+      bool
+          Indicates success or failure. On failure, check the ifm3d system log
+          for details.
+    )");
+
+  camera.def(
+    "cancel_session",
+    (bool (ifm3d::Camera::*)(const std::string&))&ifm3d::Camera::CancelSession,
+    py::arg("sid"),
+    R"(
+      Attempts to cancel a session with a particular session id.
 
       Parameters
       ----------
       sid : str
-          Session ID to cancel. Defaults to '', which cancels the currently
-          active session regardless of the session ID.
+          Session ID to cancel.
 
-      Raises
+      Returns
       -------
-      RuntimeError
-          If the cancel operation failed. Failure details can be found in the
-          ifm3d logging messages.
+      bool
+          Indicates success or failure. On failure, check the ifm3d system log
+          for details.
     )");
 
   camera.def(
