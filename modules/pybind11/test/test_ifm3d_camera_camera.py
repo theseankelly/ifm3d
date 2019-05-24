@@ -19,7 +19,6 @@ import json
 
 import ifm3dpy
 
-
 @pytest.fixture(scope="module")
 def cam():
     cam = ifm3dpy.Camera()
