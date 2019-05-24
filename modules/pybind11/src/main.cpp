@@ -93,6 +93,29 @@ PYBIND11_MODULE(ifm3dpy, m)
   m.attr("INTR_CAL") = ifm3d::INTR_CAL;
   m.attr("INV_INTR_CAL") = ifm3d::INV_INTR_CAL;
 
+  // Constants to use for querying supported firmware versions
+  m.attr("O3D_TIME_SUPPORT_MAJOR") = ifm3d::O3D_TIME_SUPPORT_MAJOR;
+  m.attr("O3D_TIME_SUPPORT_MINOR") = ifm3d::O3D_TIME_SUPPORT_MINOR;
+  m.attr("O3D_TIME_SUPPORT_PATCH") = ifm3d::O3D_TIME_SUPPORT_PATCH;
+
+  m.attr("O3D_TMP_PARAMS_SUPPORT_MAJOR") = ifm3d::O3D_TMP_PARAMS_SUPPORT_MAJOR;
+  m.attr("O3D_TMP_PARAMS_SUPPORT_MINOR") = ifm3d::O3D_TMP_PARAMS_SUPPORT_MINOR;
+  m.attr("O3D_TMP_PARAMS_SUPPORT_PATCH") = ifm3d::O3D_TMP_PARAMS_SUPPORT_PATCH;
+
+  m.attr("O3D_INTRINSIC_PARAM_SUPPORT_MAJOR") =
+    ifm3d::O3D_INTRINSIC_PARAM_SUPPORT_MAJOR;
+  m.attr("O3D_INTRINSIC_PARAM_SUPPORT_MINOR") =
+    ifm3d::O3D_INTRINSIC_PARAM_SUPPORT_MINOR;
+  m.attr("O3D_INTRINSIC_PARAM_SUPPORT_PATCH") =
+    ifm3d::O3D_INTRINSIC_PARAM_SUPPORT_PATCH;
+
+  m.attr("O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_MAJOR") =
+    ifm3d::O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_MAJOR;
+  m.attr("O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_MINOR") =
+    ifm3d::O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_MINOR;
+  m.attr("O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_PATCH") =
+    ifm3d::O3D_INVERSE_INTRINSIC_PARAM_SUPPORT_PATCH;
+
   py::class_<ifm3d::OpenCVBuffer, ifm3d::OpenCVBuffer::Ptr>(
     m,
     "ByteBuffer"
@@ -989,6 +1012,33 @@ PYBIND11_MODULE(ifm3dpy, m)
       -------
       int
           The index of the imported application.
+    )");
+
+  camera.def(
+    "check_minimum_firmware_version",
+    &ifm3d::Camera::CheckMinimumFirmwareVersion,
+    py::arg("major"),
+    py::arg("minor"),
+    py::arg("patch"),
+    R"(
+      Checks for a minimum ifm camera software version
+
+      Parameters
+      ----------
+      major : int
+          Major version of software
+
+      minor : int
+          Minor Version of software
+
+      patch : int
+          Patch Number of software
+
+      Returns
+      -------
+      bool
+          True if current software version is greater
+          or equal to the value passed
     )");
 
   camera.def(
