@@ -1,3 +1,6 @@
+## Changes between ifm3d 0.15.0 and 0.16.0
+* Created new `framegrabbedudp` module for consuming data over UDP interface
+
 ## Changes between ifm3d 0.14.1 and 0.15.0
 * Added Interface for getting json_model from O3D3xx devices.
 
