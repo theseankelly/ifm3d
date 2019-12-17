@@ -31,6 +31,7 @@ else()
   set(LIB_xmlrpc xmlrpc-c::xmlrpc)
   set(LIB_xmlrpc_clientxx xmlrpc-c::xmlrpc_client++)
   set(LIB_xmlrpc_client xmlrpc-c::xmlrpc_client)
+  set(XMLRPC_INCLUDE_DIRS ${xmlrpc-c_INCLUDE_DIR})
 endif(NOT WIN32)
 
 ################################################
