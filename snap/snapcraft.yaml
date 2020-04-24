@@ -1,0 +1,41 @@
+name: ifm3d
+base: core18
+version: '0.17.0'
+summary: Utilities for working with ifm 3D ToF Cameras
+description: |
+  TODO
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+parts:
+  ifm3d:
+    plugin: cmake
+    configflags:
+      - '-DCMAKE_INSTALL_PREFIX=/usr'
+      - '-DBUILD_TESTS=OFF'
+    source: .
+    build-packages:
+      - g++
+      - make
+      - cmake
+      - libboost-all-dev
+      - libcurl4-openssl-dev
+      - libgoogle-glog-dev
+      - libxmlrpc-c++8-dev
+      - libopencv-dev
+      - libpcl-dev
+    stage-packages:
+      - libgcc1
+      - libgoogle-glog0v5
+      - libcurl4
+      - libstdc++6
+      - libxmlrpc-c++8v5
+      - libxmlrpc-core-c3
+      - libboost-system1.65.1
+      - libboost-program-options1.65.1
+      - libopencv-core3.2
+
+apps:
+  ifm3d:
+    command: ifm3d
