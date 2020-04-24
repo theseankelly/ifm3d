@@ -15,7 +15,7 @@ macro_ensure_out_of_source_build(
   "Please build ${PROJECT_NAME} out-of-source")
 
 # Conditionally turn on/off parts of the build (global-level)
-option(BUILD_TESTS "Build unit tests" ON)
+option(BUILD_TESTS "Build unit tests" ON) #CMAKE-TODO: conventional name is BUILD_TESTING
 option(BUILD_MODULE_FRAMEGRABBER "Build the framegrabber module" ON)
 option(BUILD_MODULE_SWUPDATER "Build the swupdater module" ON)
 option(BUILD_MODULE_IMAGE "Build the image module" ON)
@@ -47,9 +47,11 @@ set(CMAKE_CXX_EXTENSIONS OFF) # OFF -> -std=c++14, ON -> -std=gnu++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 if(WIN32)
+  # CMAKE-TODO: move to target-specific commands
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-DBOOST_ALL_NO_LIB)
 else(WIN32)
+  # CMAKE-TODO: hands off build flags. how can we do this properly?
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-literal-suffix -s")
 endif(WIN32)
 
@@ -60,7 +62,7 @@ if(BUILD_SDK_PKG)
   write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/ifm3d-config-version.cmake
     VERSION ${IFM3D_VERSION}
-    COMPATIBILITY AnyNewerVersion
+    COMPATIBILITY AnyNewerVersion # CMAKE-TODO: same major version?
     )
 
   set(CONFIG_PACKAGE_LOCATION ${_lib}/cmake/ifm3d-${IFM3D_VERSION})
@@ -88,10 +90,12 @@ endif()
 add_subdirectory(modules/camera)
 
 if(BUILD_MODULE_FRAMEGRABBER)
+  # CMAKE-TOOD -- don't define global build flags. Why is this defined?
   add_definitions(-DBUILD_MODULE_FRAMEGRABBER=ON)
   add_subdirectory(modules/framegrabber)
 endif()
 if(BUILD_MODULE_SWUPDATER)
+  # CMAKE-TOOD -- don't define global build flags. Why is this defined?
   add_definitions(-DBUILD_MODULE_SWUPDATER=ON)
   add_subdirectory(modules/swupdater)
 endif()
@@ -101,10 +105,12 @@ if(BUILD_MODULE_IMAGE)
   # we are going to let the compiler convey the message (for now) instead of
   # doing some implicit CMake stuff that will be hard to maintain and
   # confuse the end-user.
+  # CMAKE-TOOD -- don't define global build flags. Why is this defined?
   add_definitions(-DBUILD_MODULE_IMAGE=ON)
   add_subdirectory(modules/image)
 endif()
 if(BUILD_MODULE_OPENCV)
+  # CMAKE-TOOD -- don't define global build flags. Why is this defined?
   add_definitions(-DBUILD_MODULE_OPENCV=ON)
   add_subdirectory(modules/opencv)
 endif()
@@ -115,6 +121,7 @@ if(BUILD_MODULE_TOOLS)
   add_subdirectory(modules/tools)
 endif()
 if(BUILD_MODULE_PYBIND11)
+  # CMAKE-TOOD -- don't define global build flags. Why is this defined?
   add_definitions(-DBUILD_MODULE_PYBIND11)
   add_subdirectory(modules/pybind11)
 endif()
@@ -134,6 +141,12 @@ if(BUILD_SDK_PKG)
   install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/ifm3d-config-version.cmake
           ${CMAKE_CURRENT_BINARY_DIR}/ifm3d-config.cmake
+    DESTINATION ${CONFIG_PACKAGE_LOCATION}
+    COMPONENT camera
+    )
+
+  install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindXMLRPC.cmake
     DESTINATION ${CONFIG_PACKAGE_LOCATION}
     COMPONENT camera
     )
