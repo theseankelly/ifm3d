@@ -6,7 +6,7 @@ description: |
   TODO
 
 grade: devel # must be 'stable' to release into candidate/stable channels
-confinement: devmode # use 'strict' once you have the right plugs and slots
+confinement: strict
 
 parts:
   ifm3d:
@@ -35,7 +35,29 @@ parts:
       - libboost-system1.65.1
       - libboost-program-options1.65.1
       - libopencv-core3.2
+  ifm3d-pcl-viewer:
+    plugin: cmake
+    source: https://github.com/ifm/ifm3d-pcl-viewer.git
+    source-type: git
+    configflags: ['-DCMAKE_INSTALL_PREFIX=/usr']
+    after: [ifm3d]
+    stage-packages:
+      - libgcc1
+      - libgoogle-glog0v5
+      - libstdc++6
+      - libboost-system1.65.1
+      - libpcl-common1.8
+      - libpcl-visualization1.8
+      - libvtk6.3
 
 apps:
   ifm3d:
     command: ifm3d
+    plugs: [network]
+  viewer:
+    command: ifm3d-pcl-viewer
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
+      LIBGL_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
+    plugs: [network, x11, opengl]
+    aliases: [ifm3d-pcl-viewer, ifm3d-viewer]
