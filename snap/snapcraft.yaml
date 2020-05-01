@@ -1,15 +1,36 @@
 name: ifm3d
 base: core18
-version: '0.17.0'
-summary: Utilities for working with ifm 3D ToF Cameras
+adopt-info: ifm3d
+summary: Utilities for working with ifm 3D ToF cameras
 description: |
-  TODO
+  This package provides tools and utilities for working with the ifm O3D3XX and
+  O3X families of 3D time of flight depth cameras.
 
-grade: devel # must be 'stable' to release into candidate/stable channels
+  **ifm3d**
+
+  The ifm3d application is a command line utility for manipulating the state
+  of the cameras. It is distributed as part of the open source ifm3d library
+  hosted at https://github.com/ifm/ifm3d.
+
+  **ifm3d.viewer**
+
+  The ifm3d.viewer application is a simple GUI for viewing colorized depth
+  information from the camera. Source code available in the open source project
+  hosted at https://github.com/ifm/ifm3d-pcl-viewer.
+
+license: Apache-2.0
 confinement: strict
 
 parts:
   ifm3d:
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version $(cat CMakeLists.txt | sed -ne 's/project(IFM3D VERSION .*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')-$(git rev-parse --short HEAD)
+      if [[ $(git branch) == "master" ]]; then
+        snapcraftctl set-grade "stable"
+      else
+        snapcraftctl set-grade "devel"
+      fi
     plugin: cmake
     configflags:
       - '-DCMAKE_INSTALL_PREFIX=/usr'
@@ -60,4 +81,3 @@ apps:
       LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
       LIBGL_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
     plugs: [network, x11, opengl]
-    aliases: [ifm3d-pcl-viewer, ifm3d-viewer]
