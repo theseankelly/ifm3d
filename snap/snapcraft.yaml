@@ -21,9 +21,6 @@ description: |
 license: Apache-2.0
 confinement: strict
 
-architectures:
-  - build-on: [arm64, amd64, i386]
-
 parts:
   ifm3d:
     override-pull: |
